@@ -11,7 +11,7 @@ test('normalizeConfig: defaults and invalid values', () => {
   assert.equal(base.enabled, true)
   assert.equal(base.delayMs, 15000)
   assert.equal(base.dryRun, true)
-  assert.deepEqual(base.skip, ['dshmarket', 'dsh-auto-update'])
+  assert.deepEqual(base.skip, ['dshmarket', '@xinming-chenniang/dsh-auto-update'])
 
   const odd = normalizeConfig({ delayMs: -1, busyRetryMs: 1, maxPackages: 0, lookupTimeoutMs: 'x', enabled: 'yes', skip: ['a', 'a', '', 7] })
   assert.equal(odd.delayMs, 15000)
@@ -41,7 +41,7 @@ test('isCandidate: only third-party registry bundles', () => {
   assert.equal(isCandidate({ ...base, error: { code: 'not-bundle' } }, config()), false)
   assert.equal(isCandidate({ ...base, enabled: false }, config({ includeDisabled: false })), false)
   assert.equal(isCandidate({ ...base, name: 'dshmarket' }, config()), false)
-  assert.equal(isCandidate({ ...base, name: 'dsh-auto-update' }, config()), false)
+  assert.equal(isCandidate({ ...base, name: '@xinming-chenniang/dsh-auto-update' }, config()), false)
   assert.equal(isCandidate(null, config()), false)
 })
 

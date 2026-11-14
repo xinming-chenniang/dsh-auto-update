@@ -1,14 +1,15 @@
-# dsh-auto-update：DSH 宿主启动后在后台检查并安装已装插件的更新。
+# @xinming-chenniang/dsh-auto-update：DSH 宿主启动后在后台检查并安装已装插件的更新。
 #
-# insert 行的 id / name **必须等于包名**，否则静默装载不上（dsh-kb-sync 的 INSTALL-PATH 教训）。
+# insert 行的 id 是配置寻址用的稳定 id；name 是模块说明符，必须能被 profile 解析
+# （scoped 包写全名，否则静默装载不上）。
 #
 # 两个 entry：
 #   dsh-auto-update       启动半部：延迟 delayMs 后跑一次更新流水线
-#   dsh-auto-update/tools 工具半部：auto_update_status / auto_update_run
+#   dsh-auto-update-tools 工具半部：auto_update_status / auto_update_run / auto_update_configure
 #
 # 覆盖默认值：在 profile 的 cordis.patch.yml 里加同 id 的配置条目，例如
 #   - id: dsh-auto-update
-#     name: dsh-auto-update
+#     name: '@xinming-chenniang/dsh-auto-update'
 #     config:
 #       delayMs: 30000
 #       dryRun: false
@@ -19,7 +20,7 @@
 # <profile>/.dsh-auto-update/config.json（见 README）。本机 profile 已覆盖为 false。
 - insert:
     - id: dsh-auto-update
-      name: 'dsh-auto-update'
+      name: '@xinming-chenniang/dsh-auto-update'
       config:
         enabled: true
         delayMs: 15000
@@ -28,12 +29,12 @@
         dryRun: true
         skip:
           - dshmarket
-          - dsh-auto-update
+          - '@xinming-chenniang/dsh-auto-update'
     - id: dsh-auto-update-tools
-      name: 'dsh-auto-update/tools'
+      name: '@xinming-chenniang/dsh-auto-update/tools'
       config:
         enabled: true
         dryRun: true
         skip:
           - dshmarket
-          - dsh-auto-update
+          - '@xinming-chenniang/dsh-auto-update'

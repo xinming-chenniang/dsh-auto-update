@@ -81,7 +81,7 @@ dsh plugin --profile <profile> add @xinming-chenniang/dsh-auto-update
 | `includeDisabled` | `true` | 未选入 bundles 的已装依赖也更新 |
 | `allowPrerelease` | `false` | 允许预发布版（当前已装预发布时自动放行） |
 | `allowDeprecated` | `false` | 允许 registry 标了 deprecated 的版本 |
-| `skip` | `['dshmarket','dsh-auto-update']` | 永不自动更新的包名 |
+| `skip` | `['dshmarket','@xinming-chenniang/dsh-auto-update']` | 永不自动更新的包名 |
 | `toast` / `toastOnNoop` | `true` / `false` | 变更提示 / 无更新时也提示 |
 | `maxPackages` | `20` | 单轮最多处理候选数 |
 | `lookupTimeoutMs` | `30000` | 单包版本查询超时 |
