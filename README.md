@@ -7,8 +7,9 @@ Silent, startup-time updates for the third-party plugins installed in a DeepSeek
   `pluginManager` (`listBundles` → `listVersions` → `updateBundle`) and upgrades installed third-party npm
   plugins to the newest **compatible** version. It does not block startup, does not modify DSH itself, and
   never restarts the app.
-- **Status**: `0.2.0`, local/private. The package ships with `dryRun: true` (discover only); a profile must
-  opt in to real updates. See [PUBLISHING.md](PUBLISHING.md) for market-readiness.
+- **Status**: `0.2.0`, source at [xinming-chenniang/dsh-auto-update](https://github.com/xinming-chenniang/dsh-auto-update).
+  The package ships with `dryRun: true` (discover only); a profile must opt in to real updates.
+  See [PUBLISHING.md](PUBLISHING.md) for market-readiness.
 - **License**: MIT.
 
 ## 它做什么 / 不做什么
@@ -35,7 +36,7 @@ Silent, startup-time updates for the third-party plugins installed in a DeepSeek
 要求：DSH `0.2.2-rc.3` 及以上（`updateBundle` 在该版本实测）。
 
 ```sh
-dsh plugin --profile <profile> add <package-name>
+dsh plugin --profile <profile> add @xinming-chenniang/dsh-auto-update
 ```
 
 或在 DSH 的「插件 → 安装」里填包名。装完重启 DSH（宿主半边在进程启动时加载）。
@@ -154,4 +155,5 @@ official packages, and never restarts the app.
 
 Installs default to `dryRun: true` (discover only). Opt in per profile with
 `<profile>/.dsh-auto-update/config.json` (`{"dryRun": false}`) or a profile patch override.
+Install with `dsh plugin --profile <profile> add @xinming-chenniang/dsh-auto-update`.
 See [CHANGELOG.md](CHANGELOG.md) and [PUBLISHING.md](PUBLISHING.md).

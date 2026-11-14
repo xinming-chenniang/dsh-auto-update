@@ -1,7 +1,6 @@
 {
-  "name": "dsh-auto-update",
+  "name": "@xinming-chenniang/dsh-auto-update",
   "version": "0.2.0",
-  "private": true,
   "description": "Silent, startup-time updates for installed DSH plugins: uses the host's official plugin manager, handles exact-pinned registry dependencies, and skips the market, itself, local link installs and GitHub installs. 启动后在后台静默更新已装插件。",
   "license": "MIT",
   "type": "module",
@@ -19,6 +18,17 @@
     "CHANGELOG.md",
     "LICENSE"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xinming-chenniang/dsh-auto-update.git"
+  },
+  "homepage": "https://github.com/xinming-chenniang/dsh-auto-update#readme",
+  "bugs": {
+    "url": "https://github.com/xinming-chenniang/dsh-auto-update/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "dsh": {
     "engines": {
       "dsh": ">=0.2.2-rc.3"
@@ -43,7 +53,7 @@
     "plugin-manager",
     "auto-update"
   ],
-  "author": "dsh-auto-update contributors",
+  "author": "xinming-chenniang",
   "icon": "./assets/icon.svg",
   "meta": {
     "title": "插件自动更新",
