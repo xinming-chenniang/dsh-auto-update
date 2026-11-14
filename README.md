@@ -61,7 +61,8 @@
 
 - `auto_update_status`：看最近一轮状态、逐包 `from → to`、是否需重启、有没有中断记录。
 - `auto_update_run`：立即跑一轮。`{ "dryRun": true }` 只发现；`{ "dryRun": false }` 真安装；
-  `{ "names": ["dsh-archived-chats"] }` 限定包名。有 agent 在跑或已有任务时拒绝。
+  `{ "names": ["dsh-archived-chats"] }` 限定包名。有 agent 在跑或已有任务时拒绝；`{ "force": true }`
+  可绕过“agent 在跑”闸门（只对**未装入当前组合**的包安全）。
 
 ## 落盘
 
