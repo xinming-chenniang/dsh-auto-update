@@ -1,101 +1,140 @@
 # dsh-auto-update
 
-- **出处**：2026-11-14 按用户要求新建 —— 「DSH 启动时自动更新插件」。
-- **是什么**：DSH 本地插件（desktop profile 用）。宿主启动约 15 秒后，在后台调用官方
-  `pluginManager` 的 `listBundles` / `listVersions` / `updateBundle`，把已安装的第三方 npm 插件升级到
-  **最新兼容版**；不阻塞启动、不改 DSH 本体、不自动重启应用。
-- **状态**：`0.1.0`，本机自用，不发布 npm；2026-11-14 已 `link:` 进 desktop profile 并 live 生效。
-  代码默认 `dryRun: true`（安全兜底），本机补丁已按验证结果改成 `false`（每次启动真更新）。
-- **处置**：保留。回滚 = 在 profile 的 `cordis.patch.yml` 给 `dsh-auto-update` / `dsh-auto-update-tools`
-  加 `disabled: true`，或把 profile `package.json` 换回 `package.json.bak-20261114-before-autoupdate`。
-- **关联**：`~/.dsh/profiles/desktop/package.json`（`link:` 指向本目录）· `cordis.patch.yml`（默认配置）·
-  插件市场 `dshmarket`（人工更新商店/回滚入口）· `dsh-notification`（复用其 `toast.ps1` 发提示）。
+Silent, startup-time updates for the third-party plugins installed in a DeepSeek Harness (DSH) profile.
+
+- **Origin**: 2026-11-14, built for “update plugins automatically when DSH starts”.
+- **What it is**: a host-side DSH plugin. About 15 seconds after the Host starts it calls the host's own
+  `pluginManager` (`listBundles` → `listVersions` → `updateBundle`) and upgrades installed third-party npm
+  plugins to the newest **compatible** version. It does not block startup, does not modify DSH itself, and
+  never restarts the app.
+- **Status**: `0.2.0`, local/private. The package ships with `dryRun: true` (discover only); a profile must
+  opt in to real updates. See [PUBLISHING.md](PUBLISHING.md) for market-readiness.
+- **License**: MIT.
 
 ## 它做什么 / 不做什么
 
-**做**（每次 DSH 宿主启动，且一轮只跑一次）：
+**做**（每个 Host 进程只跑一次）：
 
 1. 等 `pluginManager` 就绪，再延迟 `delayMs`（默认 15 秒）。
-2. 闸门：有 agent 在跑 → 每 60 秒重试、最多等 2 分钟（再久就放弃，等下一次启动，避免撞上用户正在用的
-   会话）；profile 被活进程锁住、或插件市场有未完成的更新记录 → 跳过本轮。
+2. 闸门：有 agent 在跑 → 每 60 秒重试、最多等 2 分钟（再久就放弃，等下一次启动）；
+   profile 被活进程锁住、或插件市场有未完成的更新记录 → 跳过本轮。
 3. 先收尾上次被中断的更新（`inProgress` 记录按磁盘实际版本判断）。
 4. 对每个 `update: 'registry'` 的第三方已装依赖：查更新版本 → 选最新兼容版 → `updateBundle`。
-5. 结果写 `<profile>/.dsh-auto-update/state.json` + `log.ndjson`；有变更时发一条 Windows toast。
+5. 结果写 `<profile>/.dsh-auto-update/state.json` + `log.ndjson`；有变更时发一条 Windows toast
+   （可关；没有 `dsh-notification` 时自动静默）。
 
 **不做**：
 
 - 不更新 `dshmarket` 自身（市场在桌面端不能自更新）、本插件自己、本地 `link:` 源码插件、GitHub 安装项、
   DSH 官方包。
-- 不自动重启 DSH（本机代理环境由 `start-dsh.vbs` 注入，重启插件直接拉起 exe 会丢代理；
-  需要重启时在下一次正常启动生效）。
-- 不修改 DSH 安装目录或 `app.asar`。
+- 不自动重启 DSH；需要重启才生效的更新留到下一次正常启动。
+- 不修改 DSH 安装目录或 `app.asar`；不直接写 `package.json` / `pnpm-lock.yaml`（交给宿主管理器）。
 
-## 配置
+## 安装
 
-默认值写在 `cordis.patch.yml`；要覆盖就在 profile 的 `cordis.patch.yml` 里加同 id 条目：
+要求：DSH `0.2.2-rc.3` 及以上（`updateBundle` 在该版本实测）。
+
+```sh
+dsh plugin --profile <profile> add <package-name>
+```
+
+或在 DSH 的「插件 → 安装」里填包名。装完重启 DSH（宿主半边在进程启动时加载）。
+
+## 默认是“只发现不安装”
+
+包内 `cordis.patch.yml` 默认 `dryRun: true`：装上后启动只查询候选、写日志，不安装任何东西。
+要让某个 profile 真正自动更新，二选一：
+
+### A. 用户配置文件（推荐，无需改 YAML）
+
+`<profile>/.dsh-auto-update/config.json`，例如：
+
+```json
+{
+  "dryRun": false,
+  "skip": ["dshmarket", "dsh-auto-update", "some-package"]
+}
+```
+
+也可以让 agent 调 `auto_update_configure` 工具写这个文件。用户配置覆盖 DSH patch 配置；
+`delayMs` 的改动在下一次 Host 启动生效。
+
+### B. profile patch
 
 ```yaml
 - id: dsh-auto-update
   name: dsh-auto-update
   config:
-    enabled: true
-    delayMs: 15000
     dryRun: false
-    skip: ['dshmarket', 'dsh-auto-update', '某个不想动的包']
+    busyRetryForMs: 120000
 ```
+
+## 配置项
 
 | 键 | 默认 | 说明 |
 | --- | --- | --- |
 | `enabled` | `true` | 关掉整个启动更新 |
+| `dryRun` | `true` | 只发现、不安装；置 `false` 才真更新 |
 | `delayMs` | `15000` | 启动后延迟 |
-| `busyRetryMs` / `busyRetryForMs` | `60000` / `120000` | 有 agent 在跑时重试间隔 / 最长等待（2 分钟；再久可能撞上正在用的会话） |
+| `busyRetryMs` / `busyRetryForMs` | `60000` / `120000` | 有 agent 在跑时重试间隔 / 最长等待 |
 | `includeDisabled` | `true` | 未选入 bundles 的已装依赖也更新 |
 | `allowPrerelease` | `false` | 允许预发布版（当前已装预发布时自动放行） |
 | `allowDeprecated` | `false` | 允许 registry 标了 deprecated 的版本 |
 | `skip` | `['dshmarket','dsh-auto-update']` | 永不自动更新的包名 |
-| `dryRun` | `true` | 只发现、不安装 |
 | `toast` / `toastOnNoop` | `true` / `false` | 变更提示 / 无更新时也提示 |
 | `maxPackages` | `20` | 单轮最多处理候选数 |
 | `lookupTimeoutMs` | `30000` | 单包版本查询超时 |
 
 ## 工具（agent 侧）
 
-- `auto_update_status`：看最近一轮状态、逐包 `from → to`、是否需重启、有没有中断记录。
+- `auto_update_status`：有效配置 + 最近一轮状态、逐包 `from → to`、是否需重启、有没有中断记录。
 - `auto_update_run`：立即跑一轮。`{ "dryRun": true }` 只发现；`{ "dryRun": false }` 真安装；
-  `{ "names": ["dsh-archived-chats"] }` 限定包名。有 agent 在跑或已有任务时拒绝；`{ "force": true }`
-  可绕过“agent 在跑”闸门（只对**未装入当前组合**的包安全）。
+  `{ "names": ["some-package"] }` 限定包名；`{ "force": true }` 绕过“agent 在跑”闸门
+  （只对**未装入当前组合**的包安全）。
+- `auto_update_configure`：写用户配置文件，不用手改 YAML。
 
 ## 落盘
 
 ```
-<profile>/.dsh-auto-update/state.json     # lastRun 摘要 + inProgress
-<profile>/.dsh-auto-update/log.ndjson     # 逐事件日志，512KB 轮转成 .1
+<profile>/.dsh-auto-update/config.json   # 可选，用户配置
+<profile>/.dsh-auto-update/state.json    # lastRun 摘要 + inProgress
+<profile>/.dsh-auto-update/log.ndjson    # 逐事件日志，512KB 轮转成 .1
 ```
 
 `state.json` 里 `lastRun.results[]` 每项：
 `{ name, from, to, application, step, changed, error, restore }`。
 `application` 取值来自插件管理器：`applied` / `restart-required` / `overridden` / `failed` / `cancelled` / `would-update`（dry run）。
 
-## 装/卸
+## 安全 / 能力边界
 
-- 安装（在 DSH 运行时）：`plugin_manager` 工具 `install_bundle`，target = 本目录绝对路径；
-  管理器会写成 `link:` 依赖并激活 bundle。
-- 卸载：`plugin_manager` 工具 `remove_bundle`，target = `dsh-auto-update`。
-- 改完 `cordis.patch.yml` 或 profile 依赖后需要重启宿主才完全生效（HMR 能热载的前提下以管理器返回为准）。
+- **进程**：只在 Windows 上、且仅当 `dsh-notification` 已安装时，spawn 一次 PowerShell 执行它的
+  `toast.ps1` 发通知；没有该插件、非 Windows 或 `toast:false` 时不起子进程。
+- **文件**：读 profile 的写锁 / `.dsh-market/pending-updates.json`；只在 `<profile>/.dsh-auto-update/` 下写
+  config/state/log。插件依赖、`node_modules`、`package.json` 的改动全部由宿主 `pluginManager` 完成。
+- **网络**：插件自己不 fetch；版本查询与安装由宿主的 `listVersions` / `updateBundle` 走 profile 的
+  registry/代理配置。
+- **凭据**：不读、不传、不落任何 token 或凭据；无遥测。
+- **范围**：只处理 `update === 'registry'` 的第三方 npm 依赖；`link:` / `file:` / GitHub / 官方包一律跳过。
 
-## 验证
+## 兼容性
 
-```powershell
-node --test D:\dsh\plugins\dsh-auto-update\test\*.test.mjs
-node --check D:\dsh\plugins\dsh-auto-update\lib\index.js
-node D:\dsh\tools\hygiene-structure.mjs D:\dsh --depth 1
+- 实测：DSH `0.2.2-rc.3`（desktop）。
+- 依赖 beta API `pluginManager.updateBundle`；服务缺失时安静跳过（`skipped: plugin-manager-unavailable`）。
+- 低于 `0.2.2-rc.3` 的版本未验证，`dsh.engines.dsh` 已收紧。
+
+## 开发 / 验证
+
+```sh
+npm test
+npm run check
+npm pack --dry-run
 ```
 
 运行期：
 
-1. 调 `auto_update_run { "dryRun": true }`，期望返回候选清单且 `dsh plugin --profile desktop list` 版本不变。
-2. 调 `auto_update_run`（`"names": ["dsh-archived-chats"], "dryRun": false`）验证单包真实更新。
-3. 重启 DSH 后读 `state.json`；`lastRun.trigger` 应为 `startup`，`checked` 为 profile 依赖数。
+1. `auto_update_run { "dryRun": true }` → 返回候选清单，依赖版本不变。
+2. `auto_update_run { "names": ["some-package"], "dryRun": false }` → 验证单包真实更新。
+3. 重启 DSH 后读 `state.json`；`lastRun.trigger` 为 `startup`，`checked` 为 profile 依赖数。
 
 ## 实测经验 / 坑
 
@@ -104,3 +143,15 @@ node D:\dsh\tools\hygiene-structure.mjs D:\dsh --depth 1
 - `installBundle` 对已存在的包会报 `already-installed`（DSH 0.2.2-rc.3 没有原地更新），
   所以更新必须用 `updateBundle`（它内部先卸载再安装，失败会恢复旧版）。
 - `dshmarket` 不能自更新：桌面端卸载会把市场从运行组合里摘掉，补装那步执行不到。
+
+## English
+
+A DSH host plugin that silently updates installed third-party npm plugins shortly after each Host start.
+It uses the host's official `pluginManager` (`listBundles` → `listVersions` → `updateBundle`), so
+compatibility checks, the profile lock, pnpm and failure recovery stay in the host. It handles
+exact-pinned registry dependencies, skips `dshmarket` itself, local `link:` installs, GitHub installs and
+official packages, and never restarts the app.
+
+Installs default to `dryRun: true` (discover only). Opt in per profile with
+`<profile>/.dsh-auto-update/config.json` (`{"dryRun": false}`) or a profile patch override.
+See [CHANGELOG.md](CHANGELOG.md) and [PUBLISHING.md](PUBLISHING.md).

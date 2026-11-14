@@ -1,8 +1,8 @@
 {
   "name": "dsh-auto-update",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Automatically check and install compatible updates for installed DSH plugins shortly after each Host start. 启动后在后台自动更新已装插件。",
+  "description": "Silent, startup-time updates for installed DSH plugins: uses the host's official plugin manager, handles exact-pinned registry dependencies, and skips the market, itself, local link installs and GitHub installs. 启动后在后台静默更新已装插件。",
   "license": "MIT",
   "type": "module",
   "main": "./lib/index.js",
@@ -13,13 +13,20 @@
   },
   "files": [
     "lib",
-    "test",
+    "assets",
     "cordis.patch.yml",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "dsh": {
     "engines": {
-      "dsh": ">=0.2.2-rc.1"
+      "dsh": ">=0.2.2-rc.3"
+    },
+    "compatibility": {
+      "dshReleases": {
+        "0.2.2-rc.3": "compatible"
+      }
     },
     "bundle": {
       "patch": "./cordis.patch.yml"
@@ -28,8 +35,22 @@
   "engines": {
     "node": ">=20"
   },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "plugin-manager",
+    "auto-update"
+  ],
+  "author": "dsh-auto-update contributors",
+  "icon": "./assets/icon.svg",
+  "meta": {
+    "title": "插件自动更新",
+    "description": "启动后在后台静默更新已装第三方插件；走官方插件管理器，支持精确锁版，跳过市场与本地/GitHub 安装项。"
+  },
   "scripts": {
     "test": "node --test test/*.test.mjs",
-    "check": "node --check lib/index.js && node --check lib/run.js && node --check lib/tools.js && node --check lib/state.js && node --check lib/config.js && node --check lib/pick.js && node --check lib/toast.js"
+    "check": "node --check lib/index.js && node --check lib/run.js && node --check lib/tools.js && node --check lib/state.js && node --check lib/config.js && node --check lib/pick.js && node --check lib/toast.js && node --check lib/settings.js"
   }
 }

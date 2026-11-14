@@ -14,8 +14,9 @@
 #       dryRun: false
 # 关掉：给 profile 条目加 `disabled: true`（回滚 = 删这一行）。
 #
-# dryRun：代码默认 true（安全兜底）；本机补丁在 2026-11-14 验证后已改 false。
-# 想先看候选不安装：把下面两处 dryRun 改回 true 并重启。
+# dryRun：市场安全默认 true（只发现、不安装）。要让某个 profile 真正自动更新，
+# 在 profile 的 cordis.patch.yml 里覆盖 dryRun: false，或写
+# <profile>/.dsh-auto-update/config.json（见 README）。本机 profile 已覆盖为 false。
 - insert:
     - id: dsh-auto-update
       name: 'dsh-auto-update'
@@ -24,7 +25,7 @@
         delayMs: 15000
         # agent 在跑时只重试 2 分钟：再久就可能撞上用户正在用的会话（无感要求）。
         busyRetryForMs: 120000
-        dryRun: false
+        dryRun: true
         skip:
           - dshmarket
           - dsh-auto-update
@@ -32,7 +33,7 @@
       name: 'dsh-auto-update/tools'
       config:
         enabled: true
-        dryRun: false
+        dryRun: true
         skip:
           - dshmarket
           - dsh-auto-update
