@@ -16,8 +16,8 @@
 **做**（每次 DSH 宿主启动，且一轮只跑一次）：
 
 1. 等 `pluginManager` 就绪，再延迟 `delayMs`（默认 15 秒）。
-2. 闸门：有 agent 在跑 → 每 60 秒重试、最多 30 分钟；profile 被活进程锁住、或插件市场有未完成的
-   更新记录 → 跳过本轮。
+2. 闸门：有 agent 在跑 → 每 60 秒重试、最多等 2 分钟（再久就放弃，等下一次启动，避免撞上用户正在用的
+   会话）；profile 被活进程锁住、或插件市场有未完成的更新记录 → 跳过本轮。
 3. 先收尾上次被中断的更新（`inProgress` 记录按磁盘实际版本判断）。
 4. 对每个 `update: 'registry'` 的第三方已装依赖：查更新版本 → 选最新兼容版 → `updateBundle`。
 5. 结果写 `<profile>/.dsh-auto-update/state.json` + `log.ndjson`；有变更时发一条 Windows toast。
@@ -48,7 +48,7 @@
 | --- | --- | --- |
 | `enabled` | `true` | 关掉整个启动更新 |
 | `delayMs` | `15000` | 启动后延迟 |
-| `busyRetryMs` / `busyRetryForMs` | `60000` / `1800000` | 有 agent 在跑时重试间隔 / 最长等待 |
+| `busyRetryMs` / `busyRetryForMs` | `60000` / `120000` | 有 agent 在跑时重试间隔 / 最长等待（2 分钟；再久可能撞上正在用的会话） |
 | `includeDisabled` | `true` | 未选入 bundles 的已装依赖也更新 |
 | `allowPrerelease` | `false` | 允许预发布版（当前已装预发布时自动放行） |
 | `allowDeprecated` | `false` | 允许 registry 标了 deprecated 的版本 |

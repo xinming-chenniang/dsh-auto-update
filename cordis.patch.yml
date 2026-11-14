@@ -22,6 +22,8 @@
       config:
         enabled: true
         delayMs: 15000
+        # agent 在跑时只重试 2 分钟：再久就可能撞上用户正在用的会话（无感要求）。
+        busyRetryForMs: 120000
         dryRun: false
         skip:
           - dshmarket
