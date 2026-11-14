@@ -14,15 +14,15 @@
 #       dryRun: false
 # 关掉：给 profile 条目加 `disabled: true`（回滚 = 删这一行）。
 #
-# dryRun 出厂为 true：第一次安装/重启时只发现、不落盘；先确认候选清单，
-# 再把它改成 false 才真正自动安装。
+# dryRun：代码默认 true（安全兜底）；本机补丁在 2026-11-14 验证后已改 false。
+# 想先看候选不安装：把下面两处 dryRun 改回 true 并重启。
 - insert:
     - id: dsh-auto-update
       name: 'dsh-auto-update'
       config:
         enabled: true
         delayMs: 15000
-        dryRun: true
+        dryRun: false
         skip:
           - dshmarket
           - dsh-auto-update
@@ -30,7 +30,7 @@
       name: 'dsh-auto-update/tools'
       config:
         enabled: true
-        dryRun: true
+        dryRun: false
         skip:
           - dshmarket
           - dsh-auto-update

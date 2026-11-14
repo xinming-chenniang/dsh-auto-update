@@ -4,7 +4,8 @@
 - **是什么**：DSH 本地插件（desktop profile 用）。宿主启动约 15 秒后，在后台调用官方
   `pluginManager` 的 `listBundles` / `listVersions` / `updateBundle`，把已安装的第三方 npm 插件升级到
   **最新兼容版**；不阻塞启动、不改 DSH 本体、不自动重启应用。
-- **状态**：`0.1.0`，本机自用，不发布 npm；出厂 `dryRun: true`（只发现、不落盘），验证后改 false。
+- **状态**：`0.1.0`，本机自用，不发布 npm；2026-11-14 已 `link:` 进 desktop profile 并 live 生效。
+  代码默认 `dryRun: true`（安全兜底），本机补丁已按验证结果改成 `false`（每次启动真更新）。
 - **处置**：保留。回滚 = 在 profile 的 `cordis.patch.yml` 给 `dsh-auto-update` / `dsh-auto-update-tools`
   加 `disabled: true`，或把 profile `package.json` 换回 `package.json.bak-20261114-before-autoupdate`。
 - **关联**：`~/.dsh/profiles/desktop/package.json`（`link:` 指向本目录）· `cordis.patch.yml`（默认配置）·
