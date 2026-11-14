@@ -1,8 +1,7 @@
 # 发布清单（market-ready 检查）
 
-> 状态：**0.2.0 代码已就绪；仓库 `xinming-chenniang/dsh-auto-update` 已建（空仓），默认关闭已确认。**
-> 尚未 push / npm publish / 投市场。市场规则以
-> [awesome-dsh-plugin contributing.md](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/blob/main/contributing.md)
+> 状态：**0.2.0 已发布到 npm；仓库已 push、CI 绿、tag/Release 已建。市场 PR 等仓库满 1 天。**
+> 市场规则以 [awesome-dsh-plugin contributing.md](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/blob/main/contributing.md)
 > 与本工作区 [RELEASING.md](../RELEASING.md) 为准。
 
 ## 已定
@@ -27,14 +26,20 @@
 
 ## 公开前还需要
 
-- [ ] `git push -u origin main`（**需用户明确说 push**；本地已配好 remote）
-- [ ] `gh repo edit --add-topic dsh-plugin`（并补一句仓库 description）
-- [ ] 仓库创建满 1 天（2026-11-14 18:33Z + 24h 后）
-- [ ] `npm test` + `npm run check` + `npm pack --dry-run` 在发布提交上重跑
-- [ ] `npm publish --registry=https://registry.npmjs.org`（2FA；本机需 staged publish）
-- [ ] GitHub tag + Release（资产 = 同一份 npm pack：`npm pack --pack-destination <dir>`）
+- [x] `git push -u origin main`（HEAD `3cb8d48`）
+- [x] `gh repo edit --add-topic dsh-plugin` + description
+- [ ] 仓库创建满 1 天（2026-11-14 18:33Z + 24h = **2026-11-16 02:33 北京**）
+- [x] `npm test` + `npm run check` + `npm pack --dry-run`
+- [x] `npm publish`：`@xinming-chenniang/dsh-auto-update@0.2.0` 已上线（staged approve 完成）
+- [x] GitHub tag + Release `v0.2.0`（资产 = 同一份 npm pack，SHA1 一致）
 - [ ] 市场 PR：只新增 `data/plugins/xinming-chenniang__dsh-auto-update.yml`
-- [ ] 确认市场条目描述只说功能：**启动静默、精确锁版、官方 updateBundle、跳过市场/自身/本地/GitHub**
+- [x] 市场条目描述只说功能：**启动静默、精确锁版、官方 updateBundle、跳过市场/自身/本地/GitHub**
+
+发布结果：
+
+- npm：https://www.npmjs.com/package/@xinming-chenniang/dsh-auto-update
+- GitHub Release：https://github.com/xinming-chenniang/dsh-auto-update/releases/tag/v0.2.0
+- CI：success（Node 20/24）
 
 市场条目草稿：
 
