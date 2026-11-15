@@ -7,10 +7,26 @@ Silent, startup-time updates for the third-party plugins installed in a DeepSeek
   `pluginManager` (`listBundles` → `listVersions` → `updateBundle`) and upgrades installed third-party npm
   plugins to the newest **compatible** version. It does not block startup, does not modify DSH itself, and
   never restarts the app.
-- **Status**: `0.2.0`, source at [xinming-chenniang/dsh-auto-update](https://github.com/xinming-chenniang/dsh-auto-update).
+- **Status**: `0.2.3`, source at [xinming-chenniang/dsh-auto-update](https://github.com/xinming-chenniang/dsh-auto-update).
   The package ships with `dryRun: true` (discover only); a profile must opt in to real updates.
   See [PUBLISHING.md](PUBLISHING.md) for market-readiness.
 - **License**: MIT.
+
+## 定位：窄而静默（2026-11-15 定）
+
+这个插件只做一件事：**每次 Host 启动后，安静地把已装第三方插件升到最新兼容版**。
+它服务于“不想让插件更新占用注意力”的场景，因此更新在后台发生，没事就不出声；
+需要人做的只有两件——有更新时这 1–2 分钟别开新会话（开始提醒），方便时重启一次（完成提醒）。
+
+明确的**非目标**（不做，也别再加）：
+
+- 设置面板 / 客户端半部 / 市场式浏览与勾选界面；
+- 逐包白名单面板、界面化更新历史、快照与一键回滚；
+- 启动之外的定时/空闲窗口调度（长期不重启就不更新，接受这个边界）；
+- 修改 DSH 本体、安装目录或 `app.asar`。
+
+判断标准：**新增一个功能前先问“它会不会让人多看一眼”**——会，就不做。
+市场对比里这些是竞品的强项，不是这里的路线。
 
 ## 它做什么 / 不做什么
 
