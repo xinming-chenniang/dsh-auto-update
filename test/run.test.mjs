@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync, mkdirSync, readFileSync, existsSync
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DEFAULT_CONFIG } from '../lib/config.js'
-import { startRun } from '../lib/run.js'
+import { buildToast, startRun } from '../lib/run.js'
 
 function makeContext({ busy = false, lock = false } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'dsh-auto-update-run-'))
@@ -102,6 +102,82 @@ test('run: a live profile lock skips the run', async () => {
     assert.equal(result.status, 'skipped')
     assert.equal(result.reason, 'profile-locked')
     assert.equal(calls.updateBundle.length, 0)
+  } finally {
+    cleanup()
+  }
+})
+
+test('toast: a real update reminds the user to restart', () => {
+  const note = buildToast({
+    results: [
+      { name: 'demo-plugin', from: '1.0.0', to: '1.1.0', application: 'applied' },
+      { name: 'other-plugin', from: '2.0.0', to: '2.1.0', application: 'restart-required' },
+      { name: 'up-to-date', from: '3.0.0', to: null, application: 'skipped' },
+    ],
+    restartRequired: false,
+  })
+  assert.match(note.title, /已自动更新 2 个/)
+  assert.match(note.title, /建议重启/)
+  assert.match(note.body, /demo-plugin 1\.0\.0 → 1\.1\.0/)
+  assert.match(note.body, /不重启可能仍在跑旧代码/)
+})
+
+test('toast: an explicit restart-required run says so plainly', () => {
+  const note = buildToast({
+    results: [{ name: 'a', from: '1.0.0', to: '1.1.0', application: 'restart-required' }],
+    restartRequired: true,
+  })
+  assert.match(note.title, /需要重启/)
+  assert.match(note.body, /重启 DeepSeek Harness 后新版本才会生效/)
+})
+
+test('toast: failures are reported alongside the updates', () => {
+  const note = buildToast({
+    results: [
+      { name: 'a', from: '1.0.0', to: '1.1.0', application: 'applied' },
+      { name: 'b', from: '2.0.0', to: '2.1.0', application: 'failed' },
+    ],
+  })
+  assert.match(note.body, /1 个更新失败/)
+})
+
+test('toast: nothing changed means no reminder', () => {
+  assert.equal(buildToast({ results: [] }), null)
+  assert.equal(buildToast({ results: [{ name: 'a', application: 'would-update' }] }), null)
+})
+
+test('run: keeps the manager restart reason for the reminder and state', async () => {
+  const { dir, ctx, cleanup } = makeContext()
+  try {
+    ctx.get = (name) => {
+      if (name === 'pluginManager') {
+        return {
+          profile: { dir },
+          async listBundles() {
+            return [{ name: 'demo-plugin', update: 'registry', installed: true, enabled: true, version: '1.0.0' }]
+          },
+          async listVersions() {
+            return { status: 'listed', versions: [{ version: '1.1.0' }] }
+          },
+          async updateBundle() {
+            return {
+              from: '1.0.0',
+              to: '1.1.0',
+              step: 'install',
+              result: { changed: true, application: 'restart-required', restartReason: 'module-comparison' },
+            }
+          },
+        }
+      }
+      if (name === 'agents') return { list: () => [] }
+      if (name === 'profileContext') return { dir }
+      return undefined
+    }
+    const result = await startRun(ctx, { ...silent, dryRun: false }, { trigger: 'tool', dryRun: false })
+    assert.equal(result.restartRequired, true)
+    assert.equal(result.results[0].restartReason, 'module-comparison')
+    const state = JSON.parse(readFileSync(join(dir, '.dsh-auto-update', 'state.json'), 'utf8'))
+    assert.equal(state.lastRun.results[0].restartReason, 'module-comparison')
   } finally {
     cleanup()
   }

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1 — 2026-11-15
+
+- 更新完成后的 Windows toast 改成“告诉用户该做什么”：标题写「建议重启 / 需要重启」，正文逐条列
+  `name from → to`，并明确「重启 DeepSeek Harness 后新版本才会加载」；有失败时一并报数量。
+- `state.json` 与 `auto_update_status` 的逐包结果新增 `restartReason`（管理器给出时）。
+- 新增 `toast-sent` / `toast-unavailable` 日志，提醒发没发出去以后能查。
+- 测试 21 个（新增 4 个 toast 文案用例 + 1 个 `restartReason` 用例）。
+
 ## 0.2.0 — 2026-11-15
 
 市场准备版本（未发布到 npm / 市场）。

@@ -21,8 +21,9 @@ Silent, startup-time updates for the third-party plugins installed in a DeepSeek
    profile 被活进程锁住、或插件市场有未完成的更新记录 → 跳过本轮。
 3. 先收尾上次被中断的更新（`inProgress` 记录按磁盘实际版本判断）。
 4. 对每个 `update: 'registry'` 的第三方已装依赖：查更新版本 → 选最新兼容版 → `updateBundle`。
-5. 结果写 `<profile>/.dsh-auto-update/state.json` + `log.ndjson`；有变更时发一条 Windows toast
-   （可关；没有 `dsh-notification` 时自动静默）。
+5. 结果写 `<profile>/.dsh-auto-update/state.json` + `log.ndjson`；有变更时发一条 Windows toast：
+   标题写明「建议重启 / 需要重启」，正文逐条列 `from → to` 并说明**重启后新版本才会加载**，
+   有失败时一并报数量（可关；没有 `dsh-notification` 时只写日志，不报错）。
 
 **不做**：
 
@@ -82,7 +83,7 @@ dsh plugin --profile <profile> add @xinming-chenniang/dsh-auto-update
 | `allowPrerelease` | `false` | 允许预发布版（当前已装预发布时自动放行） |
 | `allowDeprecated` | `false` | 允许 registry 标了 deprecated 的版本 |
 | `skip` | `['dshmarket','@xinming-chenniang/dsh-auto-update']` | 永不自动更新的包名 |
-| `toast` / `toastOnNoop` | `true` / `false` | 变更提示 / 无更新时也提示 |
+| `toast` / `toastOnNoop` | `true` / `false` | 更新后的 Windows 提醒（含重启提示）/ 无更新时也提示 |
 | `maxPackages` | `20` | 单轮最多处理候选数 |
 | `lookupTimeoutMs` | `30000` | 单包版本查询超时 |
 
@@ -103,8 +104,10 @@ dsh plugin --profile <profile> add @xinming-chenniang/dsh-auto-update
 ```
 
 `state.json` 里 `lastRun.results[]` 每项：
-`{ name, from, to, application, step, changed, error, restore }`。
-`application` 取值来自插件管理器：`applied` / `restart-required` / `overridden` / `failed` / `cancelled` / `would-update`（dry run）。
+`{ name, from, to, application, step, changed, restartReason, error, restore }`。
+`application` 取值来自插件管理器：`applied` / `restart-required` / `overridden` / `failed` / `cancelled` / `would-update`（dry run）；
+`restartReason` 是管理器给出的重启原因（`no-hmr` / `package-moved` / `host-module` / `unmanaged-plugin` / `module-comparison`），
+没有给出时为 `null`。
 
 ## 安全 / 能力边界
 
@@ -144,6 +147,8 @@ npm pack --dry-run
 - `installBundle` 对已存在的包会报 `already-installed`（DSH 0.2.2-rc.3 没有原地更新），
   所以更新必须用 `updateBundle`（它内部先卸载再安装，失败会恢复旧版）。
 - `dshmarket` 不能自更新：桌面端卸载会把市场从运行组合里摘掉，补装那步执行不到。
+- **更新 ≠ 生效**：包是在启动后换到磁盘上的，宿主插件的新代码要下一次启动才加载。
+  所以提醒必须写清「重启 DSH」；`application: 'applied'` 只说明管理动作成功，不等于新模块已在跑。
 
 ## English
 
