@@ -47,3 +47,17 @@ test('settings: write merges and ignores unknown keys', () => {
     rmSync(dir, { recursive: true, force: true })
   }
 })
+
+test('settings: toast switches round-trip and retired keys are ignored', () => {
+  const dir = profile()
+  try {
+    writeUserConfig(dir, { toastOnStart: false })
+    assert.deepEqual(readUserConfig(dir), { toastOnStart: false })
+    assert.equal(loadConfig(dir, DEFAULT_CONFIG).toastOnStart, false)
+    // toastOnNoop 已退役：旧配置文件里还写着也不会生效、不会被写回。
+    writeUserConfig(dir, { toastOnNoop: true })
+    assert.deepEqual(readUserConfig(dir), { toastOnStart: false })
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})

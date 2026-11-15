@@ -1,6 +1,6 @@
 {
   "name": "@xinming-chenniang/dsh-auto-update",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Silent, startup-time updates for installed DSH plugins: uses the host's official plugin manager, handles exact-pinned registry dependencies, and skips the market, itself, local link installs and GitHub installs. 启动后在后台静默更新已装插件。",
   "license": "MIT",
   "type": "module",

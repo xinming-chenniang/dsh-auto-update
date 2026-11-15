@@ -26,6 +26,7 @@ Silent, startup-time updates for the third-party plugins installed in a DeepSeek
 5. 结果写 `<profile>/.dsh-auto-update/state.json` + `log.ndjson`；有变更时发一条 Windows toast：
    标题写明「建议重启 / 需要重启」，正文逐条列 `from → to` 并说明**重启后新版本才会加载**，
    有失败时一并报数量（可关；没有 `dsh-notification` 时只写日志，不报错）。
+   **没有可装更新时完全静默**：不发开始提醒、不发完成提醒，也不发“无更新”提示——只写日志。
 
 **不做**：
 
@@ -85,7 +86,7 @@ dsh plugin --profile <profile> add @xinming-chenniang/dsh-auto-update
 | `allowPrerelease` | `false` | 允许预发布版（当前已装预发布时自动放行） |
 | `allowDeprecated` | `false` | 允许 registry 标了 deprecated 的版本 |
 | `skip` | `['dshmarket','@xinming-chenniang/dsh-auto-update']` | 永不自动更新的包名 |
-| `toast` / `toastOnStart` / `toastOnNoop` | `true` / `true` / `false` | 更新后的提醒 / **开始安装时的提醒**（别开新会话）/ 无更新时也提示 |
+| `toast` / `toastOnStart` | `true` / `true` | 更新后的提醒 / **开始安装时的提醒**（别开新会话）。没有可装更新时完全静默，没有“无更新”提示 |
 | `maxPackages` | `20` | 单轮最多处理候选数 |
 | `lookupTimeoutMs` | `30000` | 单包版本查询超时 |
 

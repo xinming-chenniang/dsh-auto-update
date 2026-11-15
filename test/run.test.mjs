@@ -39,7 +39,7 @@ function makeContext({ busy = false, lock = false } = {}) {
   return { dir, ctx, calls, cleanup }
 }
 
-const silent = { ...DEFAULT_CONFIG, skip: [], toast: false, toastOnNoop: false, dryRun: true }
+const silent = { ...DEFAULT_CONFIG, skip: [], toast: false, dryRun: true }
 
 test('run: dry run reports would-update and never installs', async () => {
   const { dir, ctx, calls, cleanup } = makeContext()
@@ -144,6 +144,42 @@ test('toast: failures are reported alongside the updates', () => {
 test('toast: nothing changed means no reminder', () => {
   assert.equal(buildToast({ results: [] }), null)
   assert.equal(buildToast({ results: [{ name: 'a', application: 'would-update' }] }), null)
+  assert.equal(buildToast({ results: [{ name: 'a', application: 'skipped' }], candidates: 3 }), null)
+  assert.equal(buildToast({ results: [{ name: 'a', application: 'failed' }] }), null)
+})
+
+test('run: nothing to install stays completely silent', async () => {
+  const { dir, ctx, cleanup } = makeContext()
+  try {
+    // 候选存在、但没有兼容版本 → 不该发任何提醒，连日志里都不该有 toast 事件。
+    ctx.get = (name) => {
+      if (name === 'pluginManager') {
+        return {
+          profile: { dir },
+          async listBundles() {
+            return [{ name: 'demo-plugin', update: 'registry', installed: true, enabled: true, version: '1.0.0' }]
+          },
+          async listVersions() {
+            return { status: 'listed', versions: [] }
+          },
+          async updateBundle() {
+            throw new Error('must not install when no version is available')
+          },
+        }
+      }
+      if (name === 'agents') return { list: () => [] }
+      if (name === 'profileContext') return { dir }
+      return undefined
+    }
+    const result = await startRun(ctx, { ...silent, toast: true, dryRun: false }, { trigger: 'tool', dryRun: false })
+    assert.equal(result.status, 'ok')
+    assert.equal(result.results[0].application, 'skipped')
+    const log = readFileSync(join(dir, '.dsh-auto-update', 'log.ndjson'), 'utf8')
+    assert.doesNotMatch(log, /"event":"toast-/)
+    assert.doesNotMatch(log, /"event":"update-started"/)
+  } finally {
+    cleanup()
+  }
 })
 
 test('toast: the start reminder tells the user not to open a session', () => {
