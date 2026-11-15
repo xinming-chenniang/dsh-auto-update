@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 — 2026-11-15
+
+- **改名**：`@xinming-chenniang/dsh-auto-update` → `dsh-quiet-update`，GitHub 仓库同名改。
+  原因：市场里已有 5 个叫 `dsh-auto-update` 的条目（都在做 DSH 本体自更新），搜索会被淹没；
+  新名与定位一致（静默、零交互）。
+- 内部 id、模块说明符、默认 skip 名单、状态目录（`<profile>/.dsh-auto-update` → `.dsh-quiet-update`）、
+  文档全部跟改。
+- 无功能变化：0.2.1（完成提醒）/ 0.2.2（开始提醒）/ 0.2.3（无更新静默）照旧。
+
 ## 0.2.3 — 2026-11-15
 
 - **无更新时完全静默**：删掉 `toastOnNoop`（“没更新也提示”）这条路径，现在没有可装更新就

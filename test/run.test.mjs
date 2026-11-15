@@ -7,7 +7,7 @@ import { DEFAULT_CONFIG } from '../lib/config.js'
 import { buildStartToast, buildToast, startRun } from '../lib/run.js'
 
 function makeContext({ busy = false, lock = false } = {}) {
-  const dir = mkdtempSync(join(tmpdir(), 'dsh-auto-update-run-'))
+  const dir = mkdtempSync(join(tmpdir(), 'dsh-quiet-update-run-'))
   const calls = { updateBundle: [], installBundle: [] }
   if (lock) writeFileSync(join(dir, 'package.json.lock'), String(process.pid))
   const pm = {
@@ -49,7 +49,7 @@ test('run: dry run reports would-update and never installs', async () => {
     assert.equal(result.checked, 1)
     assert.deepEqual(result.results.map((item) => item.application), ['would-update'])
     assert.equal(calls.updateBundle.length, 0)
-    assert.equal(existsSync(join(dir, '.dsh-auto-update', 'state.json')), true)
+    assert.equal(existsSync(join(dir, '.dsh-quiet-update', 'state.json')), true)
   } finally {
     cleanup()
   }
@@ -62,7 +62,7 @@ test('run: real run updates through the manager and records it', async () => {
     assert.equal(result.status, 'ok')
     assert.deepEqual(calls.updateBundle, [{ name: 'demo-plugin', version: '1.1.0' }])
     assert.equal(result.results[0].application, 'applied')
-    const state = JSON.parse(readFileSync(join(dir, '.dsh-auto-update', 'state.json'), 'utf8'))
+    const state = JSON.parse(readFileSync(join(dir, '.dsh-quiet-update', 'state.json'), 'utf8'))
     assert.equal(state.lastRun.results[0].to, '1.1.0')
     assert.deepEqual(state.inProgress, [])
   } finally {
@@ -73,8 +73,8 @@ test('run: real run updates through the manager and records it', async () => {
 test('run: user config file can turn dryRun off', async () => {
   const { dir, ctx, calls, cleanup } = makeContext()
   try {
-    mkdirSync(join(dir, '.dsh-auto-update'), { recursive: true })
-    writeFileSync(join(dir, '.dsh-auto-update', 'config.json'), JSON.stringify({ dryRun: false }))
+    mkdirSync(join(dir, '.dsh-quiet-update'), { recursive: true })
+    writeFileSync(join(dir, '.dsh-quiet-update', 'config.json'), JSON.stringify({ dryRun: false }))
     const result = await startRun(ctx, silent, { trigger: 'tool' })
     assert.equal(result.dryRun, false)
     assert.equal(calls.updateBundle.length, 1)
@@ -174,7 +174,7 @@ test('run: nothing to install stays completely silent', async () => {
     const result = await startRun(ctx, { ...silent, toast: true, dryRun: false }, { trigger: 'tool', dryRun: false })
     assert.equal(result.status, 'ok')
     assert.equal(result.results[0].application, 'skipped')
-    const log = readFileSync(join(dir, '.dsh-auto-update', 'log.ndjson'), 'utf8')
+    const log = readFileSync(join(dir, '.dsh-quiet-update', 'log.ndjson'), 'utf8')
     assert.doesNotMatch(log, /"event":"toast-/)
     assert.doesNotMatch(log, /"event":"update-started"/)
   } finally {
@@ -208,7 +208,7 @@ test('run: a real run logs update-started before installing', async () => {
   const { dir, ctx, cleanup } = makeContext()
   try {
     await startRun(ctx, { ...silent, dryRun: false }, { trigger: 'tool', dryRun: false })
-    const log = readFileSync(join(dir, '.dsh-auto-update', 'log.ndjson'), 'utf8')
+    const log = readFileSync(join(dir, '.dsh-quiet-update', 'log.ndjson'), 'utf8')
     assert.match(log, /"event":"update-started"/)
     assert.match(log, /"count":1/)
   } finally {
@@ -246,7 +246,7 @@ test('run: keeps the manager restart reason for the reminder and state', async (
     const result = await startRun(ctx, { ...silent, dryRun: false }, { trigger: 'tool', dryRun: false })
     assert.equal(result.restartRequired, true)
     assert.equal(result.results[0].restartReason, 'module-comparison')
-    const state = JSON.parse(readFileSync(join(dir, '.dsh-auto-update', 'state.json'), 'utf8'))
+    const state = JSON.parse(readFileSync(join(dir, '.dsh-quiet-update', 'state.json'), 'utf8'))
     assert.equal(state.lastRun.results[0].restartReason, 'module-comparison')
   } finally {
     cleanup()

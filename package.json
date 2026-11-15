@@ -1,7 +1,7 @@
 {
-  "name": "@xinming-chenniang/dsh-auto-update",
-  "version": "0.2.3",
-  "description": "Silent, startup-time updates for installed DSH plugins: uses the host's official plugin manager, handles exact-pinned registry dependencies, and skips the market, itself, local link installs and GitHub installs. 启动后在后台静默更新已装插件。",
+  "name": "dsh-quiet-update",
+  "version": "0.3.0",
+  "description": "Silent, startup-time updates for installed DSH plugins: uses the host's official plugin manager, handles exact-pinned registry dependencies, stays completely silent when there is nothing to install, and skips the market, itself, local link installs and GitHub installs. 启动后在后台静默更新已装插件。",
   "license": "MIT",
   "type": "module",
   "main": "./lib/index.js",
@@ -20,11 +20,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xinming-chenniang/dsh-auto-update.git"
+    "url": "git+https://github.com/xinming-chenniang/dsh-quiet-update.git"
   },
-  "homepage": "https://github.com/xinming-chenniang/dsh-auto-update#readme",
+  "homepage": "https://github.com/xinming-chenniang/dsh-quiet-update#readme",
   "bugs": {
-    "url": "https://github.com/xinming-chenniang/dsh-auto-update/issues"
+    "url": "https://github.com/xinming-chenniang/dsh-quiet-update/issues"
   },
   "publishConfig": {
     "access": "public"
@@ -51,13 +51,15 @@
     "deepseek-harness",
     "cordis",
     "plugin-manager",
-    "auto-update"
+    "auto-update",
+    "silent",
+    "quiet"
   ],
   "author": "xinming-chenniang",
   "icon": "./assets/icon.svg",
   "meta": {
-    "title": "插件自动更新",
-    "description": "启动后在后台静默更新已装第三方插件；走官方插件管理器，支持精确锁版，跳过市场与本地/GitHub 安装项。"
+    "title": "静默插件更新",
+    "description": "启动后在后台静默更新已装第三方插件；没更新时完全不出声。走官方插件管理器，支持精确锁版，跳过市场与本地/GitHub 安装项。"
   },
   "scripts": {
     "test": "node --test test/*.test.mjs",

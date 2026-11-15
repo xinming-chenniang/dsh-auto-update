@@ -1,4 +1,4 @@
-# dsh-auto-update
+# dsh-quiet-update
 
 Silent, startup-time updates for the third-party plugins installed in a DeepSeek Harness (DSH) profile.
 
@@ -7,7 +7,9 @@ Silent, startup-time updates for the third-party plugins installed in a DeepSeek
   `pluginManager` (`listBundles` → `listVersions` → `updateBundle`) and upgrades installed third-party npm
   plugins to the newest **compatible** version. It does not block startup, does not modify DSH itself, and
   never restarts the app.
-- **Status**: `0.2.3`, source at [xinming-chenniang/dsh-auto-update](https://github.com/xinming-chenniang/dsh-auto-update).
+- **Status**: `0.3.0` (renamed from `@xinming-chenniang/dsh-auto-update` on 2026-11-15 to stop competing
+  with the five same-named “update DSH itself” plugins in the market), source at
+  [xinming-chenniang/dsh-quiet-update](https://github.com/xinming-chenniang/dsh-quiet-update).
   The package ships with `dryRun: true` (discover only); a profile must opt in to real updates.
   See [PUBLISHING.md](PUBLISHING.md) for market-readiness.
 - **License**: MIT.
@@ -39,7 +41,7 @@ Silent, startup-time updates for the third-party plugins installed in a DeepSeek
 4. 对每个 `update: 'registry'` 的第三方已装依赖：先查更新版本 → 选最新兼容版，再统一安装；
    安装开始前先发一条提醒（`toastOnStart`）：列出准确的 `from → to`，说明“后台安装约 1–2 分钟，
    这期间先别开新会话”，装完再发结果。
-5. 结果写 `<profile>/.dsh-auto-update/state.json` + `log.ndjson`；有变更时发一条 Windows toast：
+5. 结果写 `<profile>/.dsh-quiet-update/state.json` + `log.ndjson`；有变更时发一条 Windows toast：
    标题写明「建议重启 / 需要重启」，正文逐条列 `from → to` 并说明**重启后新版本才会加载**，
    有失败时一并报数量（可关；没有 `dsh-notification` 时只写日志，不报错）。
    **没有可装更新时完全静默**：不发开始提醒、不发完成提醒，也不发“无更新”提示——只写日志。
@@ -56,7 +58,7 @@ Silent, startup-time updates for the third-party plugins installed in a DeepSeek
 要求：DSH `0.2.2-rc.3` 及以上（`updateBundle` 在该版本实测）。
 
 ```sh
-dsh plugin --profile <profile> add @xinming-chenniang/dsh-auto-update
+dsh plugin --profile <profile> add dsh-quiet-update
 ```
 
 或在 DSH 的「插件 → 安装」里填包名。装完重启 DSH（宿主半边在进程启动时加载）。
@@ -68,12 +70,12 @@ dsh plugin --profile <profile> add @xinming-chenniang/dsh-auto-update
 
 ### A. 用户配置文件（推荐，无需改 YAML）
 
-`<profile>/.dsh-auto-update/config.json`，例如：
+`<profile>/.dsh-quiet-update/config.json`，例如：
 
 ```json
 {
   "dryRun": false,
-  "skip": ["dshmarket", "dsh-auto-update", "some-package"]
+  "skip": ["dshmarket", "dsh-quiet-update", "some-package"]
 }
 ```
 
@@ -83,8 +85,8 @@ dsh plugin --profile <profile> add @xinming-chenniang/dsh-auto-update
 ### B. profile patch
 
 ```yaml
-- id: dsh-auto-update
-  name: dsh-auto-update
+- id: dsh-quiet-update
+  name: dsh-quiet-update
   config:
     dryRun: false
     busyRetryForMs: 120000
@@ -101,7 +103,7 @@ dsh plugin --profile <profile> add @xinming-chenniang/dsh-auto-update
 | `includeDisabled` | `true` | 未选入 bundles 的已装依赖也更新 |
 | `allowPrerelease` | `false` | 允许预发布版（当前已装预发布时自动放行） |
 | `allowDeprecated` | `false` | 允许 registry 标了 deprecated 的版本 |
-| `skip` | `['dshmarket','@xinming-chenniang/dsh-auto-update']` | 永不自动更新的包名 |
+| `skip` | `['dshmarket','dsh-quiet-update']` | 永不自动更新的包名 |
 | `toast` / `toastOnStart` | `true` / `true` | 更新后的提醒 / **开始安装时的提醒**（别开新会话）。没有可装更新时完全静默，没有“无更新”提示 |
 | `maxPackages` | `20` | 单轮最多处理候选数 |
 | `lookupTimeoutMs` | `30000` | 单包版本查询超时 |
@@ -117,9 +119,9 @@ dsh plugin --profile <profile> add @xinming-chenniang/dsh-auto-update
 ## 落盘
 
 ```
-<profile>/.dsh-auto-update/config.json   # 可选，用户配置
-<profile>/.dsh-auto-update/state.json    # lastRun 摘要 + inProgress
-<profile>/.dsh-auto-update/log.ndjson    # 逐事件日志，512KB 轮转成 .1
+<profile>/.dsh-quiet-update/config.json   # 可选，用户配置
+<profile>/.dsh-quiet-update/state.json    # lastRun 摘要 + inProgress
+<profile>/.dsh-quiet-update/log.ndjson    # 逐事件日志，512KB 轮转成 .1
 ```
 
 `state.json` 里 `lastRun.results[]` 每项：
@@ -132,7 +134,7 @@ dsh plugin --profile <profile> add @xinming-chenniang/dsh-auto-update
 
 - **进程**：只在 Windows 上、且仅当 `dsh-notification` 已安装时，spawn 一次 PowerShell 执行它的
   `toast.ps1` 发通知；没有该插件、非 Windows 或 `toast:false` 时不起子进程。
-- **文件**：读 profile 的写锁 / `.dsh-market/pending-updates.json`；只在 `<profile>/.dsh-auto-update/` 下写
+- **文件**：读 profile 的写锁 / `.dsh-market/pending-updates.json`；只在 `<profile>/.dsh-quiet-update/` 下写
   config/state/log。插件依赖、`node_modules`、`package.json` 的改动全部由宿主 `pluginManager` 完成。
 - **网络**：插件自己不 fetch；版本查询与安装由宿主的 `listVersions` / `updateBundle` 走 profile 的
   registry/代理配置。
@@ -178,6 +180,6 @@ exact-pinned registry dependencies, skips `dshmarket` itself, local `link:` inst
 official packages, and never restarts the app.
 
 Installs default to `dryRun: true` (discover only). Opt in per profile with
-`<profile>/.dsh-auto-update/config.json` (`{"dryRun": false}`) or a profile patch override.
-Install with `dsh plugin --profile <profile> add @xinming-chenniang/dsh-auto-update`.
+`<profile>/.dsh-quiet-update/config.json` (`{"dryRun": false}`) or a profile patch override.
+Install with `dsh plugin --profile <profile> add dsh-quiet-update`.
 See [CHANGELOG.md](CHANGELOG.md) and [PUBLISHING.md](PUBLISHING.md).

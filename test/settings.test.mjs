@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { DEFAULT_CONFIG } from '../lib/config.js'
 import { loadConfig, readUserConfig, userConfigPath, writeUserConfig } from '../lib/settings.js'
 
-const profile = () => mkdtempSync(join(tmpdir(), 'dsh-auto-update-settings-'))
+const profile = () => mkdtempSync(join(tmpdir(), 'dsh-quiet-update-settings-'))
 
 test('settings: missing file means empty user config', () => {
   const dir = profile()
@@ -22,7 +22,7 @@ test('settings: missing file means empty user config', () => {
 test('settings: user file overrides base config', () => {
   const dir = profile()
   try {
-    mkdirSync(join(dir, '.dsh-auto-update'), { recursive: true })
+    mkdirSync(join(dir, '.dsh-quiet-update'), { recursive: true })
     writeFileSync(userConfigPath(dir), JSON.stringify({ dryRun: false, skip: ['x'], delayMs: 1000 }))
     const effective = loadConfig(dir, { ...DEFAULT_CONFIG, skip: ['dshmarket'] })
     assert.equal(effective.dryRun, false)
