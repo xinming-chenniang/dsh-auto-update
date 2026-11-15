@@ -11,6 +11,7 @@ test('normalizeConfig: defaults and invalid values', () => {
   assert.equal(base.enabled, true)
   assert.equal(base.delayMs, 15000)
   assert.equal(base.dryRun, true)
+  assert.equal(base.toastOnStart, true)
   assert.deepEqual(base.skip, ['dshmarket', '@xinming-chenniang/dsh-auto-update'])
 
   const odd = normalizeConfig({ delayMs: -1, busyRetryMs: 1, maxPackages: 0, lookupTimeoutMs: 'x', enabled: 'yes', skip: ['a', 'a', '', 7] })
@@ -23,13 +24,14 @@ test('normalizeConfig: defaults and invalid values', () => {
 })
 
 test('normalizeConfig: valid overrides survive', () => {
-  const cfg = normalizeConfig({ enabled: false, delayMs: 1000, dryRun: false, allowPrerelease: true, skip: ['x'], maxPackages: 3 })
+  const cfg = normalizeConfig({ enabled: false, delayMs: 1000, dryRun: false, allowPrerelease: true, skip: ['x'], maxPackages: 3, toastOnStart: false })
   assert.equal(cfg.enabled, false)
   assert.equal(cfg.delayMs, 1000)
   assert.equal(cfg.dryRun, false)
   assert.equal(cfg.allowPrerelease, true)
   assert.deepEqual(cfg.skip, ['x'])
   assert.equal(cfg.maxPackages, 3)
+  assert.equal(cfg.toastOnStart, false)
 })
 
 test('isCandidate: only third-party registry bundles', () => {

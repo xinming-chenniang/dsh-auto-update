@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync, mkdirSync, readFileSync, existsSync
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DEFAULT_CONFIG } from '../lib/config.js'
-import { buildToast, startRun } from '../lib/run.js'
+import { buildStartToast, buildToast, startRun } from '../lib/run.js'
 
 function makeContext({ busy = false, lock = false } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'dsh-auto-update-run-'))
@@ -144,6 +144,40 @@ test('toast: failures are reported alongside the updates', () => {
 test('toast: nothing changed means no reminder', () => {
   assert.equal(buildToast({ results: [] }), null)
   assert.equal(buildToast({ results: [{ name: 'a', application: 'would-update' }] }), null)
+})
+
+test('toast: the start reminder tells the user not to open a session', () => {
+  const note = buildStartToast([
+    { name: 'ds-harness-remote', from: '0.6.4', to: '0.6.5' },
+    { name: 'dsh-context', from: '0.73.3', to: '0.84.1' },
+  ])
+  assert.match(note.title, /开始安装 2 个/)
+  assert.match(note.body, /ds-harness-remote 0\.6\.4 → 0\.6\.5/)
+  assert.match(note.body, /先别开新会话/)
+  assert.match(note.body, /1–2 分钟/)
+})
+
+test('toast: the start reminder folds long lists', () => {
+  const planned = Array.from({ length: 8 }, (_, index) => ({ name: `p${index}`, from: '1.0.0', to: '1.1.0' }))
+  const note = buildStartToast(planned)
+  assert.match(note.body, /…另有 2 个/)
+})
+
+test('toast: no planned update means no start reminder', () => {
+  assert.equal(buildStartToast([]), null)
+  assert.equal(buildStartToast(undefined), null)
+})
+
+test('run: a real run logs update-started before installing', async () => {
+  const { dir, ctx, cleanup } = makeContext()
+  try {
+    await startRun(ctx, { ...silent, dryRun: false }, { trigger: 'tool', dryRun: false })
+    const log = readFileSync(join(dir, '.dsh-auto-update', 'log.ndjson'), 'utf8')
+    assert.match(log, /"event":"update-started"/)
+    assert.match(log, /"count":1/)
+  } finally {
+    cleanup()
+  }
 })
 
 test('run: keeps the manager restart reason for the reminder and state', async () => {
