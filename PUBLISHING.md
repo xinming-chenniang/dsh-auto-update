@@ -72,6 +72,33 @@ description:
 icon: https://raw.githubusercontent.com/xinming-chenniang/dsh-quiet-update/main/assets/icon-180.png
 ```
 
+## 本地迁移（2026-11-15 定：下次关 DSH 时做）
+
+当前 profile 里生效的仍是旧目录 `D:\dsh\plugins\dsh-auto-update` 的 `link:`。关 DSH 后按顺序：
+
+1. 关 DSH（宿主退出，profile 解锁）。
+2. profile `package.json`：依赖键改成 `"dsh-quiet-update": "link:D:/dsh/plugins/dsh-quiet-update"`，
+   `dsh.profile.bundles` 里同名项一起换。
+3. profile `cordis.patch.yml`：两条覆盖条目的 `id` / `name` 改成 `dsh-quiet-update` / `dsh-quiet-update-tools`
+   与 `dsh-quiet-update` 模块名。
+4. profile `.dsh-auto-update/` 目录改名 `.dsh-quiet-update/`（保留历史与 state）。
+5. profile 里跑一次 `pnpm install`，保持 lock 一致。
+6. 重启 DSH 验收：`auto_update_status` 显示新配置行，`listBundles` 里是 `dsh-quiet-update`；
+   `auto_update_run { dryRun: true }` 有返回。
+7. 确认新包在跑后，旧目录 `D:\dsh\plugins\dsh-auto-update` 归档或删除。
+
+## 市场 PR（2026-11-15 定：手动开）
+
+仓库满 1 天 = **2026-11-16 02:33 北京** 之后，用已推好的 fork 分支开 PR：
+
+```
+分支：xinming-chenniang/awesome-dsh-plugin:add/dsh-quiet-update
+标题：Add dsh-quiet-update
+```
+
+只新增 `data/plugins/xinming-chenniang__dsh-quiet-update.yml`；CI 的年龄闸门在
+`scripts/check-submission.mjs`（`MIN_AGE_DAYS = 1`）。
+
 ## 仍然是短板的
 
 - **依赖 beta API** `updateBundle`：DSH 升级时要跟着验证。
