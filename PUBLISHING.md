@@ -48,11 +48,11 @@
 - [x] 改名：package / cordis.patch / 默认 skip / 状态目录 / README / 测试
 - [x] `npm test`（27）+ `npm run check` + `npm pack --dry-run`
 - [x] 重命名 GitHub 仓库为 `dsh-quiet-update` 并 push
-- [ ] `npm login`（当前 `npm whoami` 失败）+ `npm publish`（`dsh-quiet-update@0.3.0`）
+- [x] `npm publish`（`dsh-quiet-update@0.3.0`，2026-11-18 staged + approve 发布成功）
 - [x] GitHub tag + Release `v0.3.0`（资产 = 同一份 npm pack）—— 2026-11-18
-- [ ] 旧包 `npm deprecate @xinming-chenniang/dsh-auto-update "renamed to dsh-quiet-update"`（0.3.0 发布后）
+- [x] 旧包 `npm deprecate @xinming-chenniang/dsh-auto-update "renamed to dsh-quiet-update"`（2026-11-18 执行，verified）
 - [x] 仓库创建满 1 天（2026-11-14 18:33Z + 24h = **2026-11-16 02:33 北京**）
-- [ ] 市场 PR：只新增 `data/plugins/xinming-chenniang__dsh-quiet-update.yml`（npm 上线后开）
+- [x] 市场 PR：只新增 `data/plugins/xinming-chenniang__dsh-quiet-update.yml`（PR #16604，2026-11-18）
 - [x] 本地 profile 迁移（2026-11-18：依赖键 / bundles / patch id / `.dsh-quiet-update` 状态目录；`pnpm install` 通过；**重启后生效**）
 
 发布结果（0.3.0，待填）：
